@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            f'aruco_prec_land = {package_name}.node:main'
         ],
     },
 )

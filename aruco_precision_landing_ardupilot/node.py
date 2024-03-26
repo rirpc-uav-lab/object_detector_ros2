@@ -1,107 +1,141 @@
-from dronekit import connect, VehicleMode, LocationGlobalRelative
-from pymavlink import mavutil
-import time
-import argparse  
+import rclpy
+from rclpy.node import Node
+
+from std_msgs.msg import String
 
 import numpy as np
 import cv2
-from cv2 import aruco
+import math
+from pymavlink import mavutil
+from dronekit import connect #, VehicleMode, LocationGlobalRelative, LocationGlobal
+from cv_bridge import CvBridge
+from sensor_msgs.msg import Image
+from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Twist
 
 
 
-cap = cv2.VideoCapture(0)
+class ArucoNode(Node):
 
+    def __init__(self):
 
+        super().__init__('Aruco_Node')
+        # self.aruco_pub = self.create_publisher(Twist, '/aruco_result', 10)
+        self.aruco_sub = self.create_subscription(Image, '/camera', self.Aruco_callback, 10)
+        self.vehicle = connect('udp:127.0.0.1:14550', wait_ready=True)
+        self.vehicle.parameters['PLND_ENABLED'] = 1
+        self.vehicle.parameters['PLND_TYPE'] = 1
+        self.vehicle.parameters['PLND_EST_TYPE'] = 0
+        self.vehicle.parameters['LAND_SPEED'] = 20
 
+    def Aruco_callback(self, sensor_msgs: Image):
+        result = Twist()
+        result.linear.x = 0.0
+        result.angular.x = 0.0
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--connect', default='127.0.0.1:14550')
-args = parser.parse_args()
-
-# Connect to the Vehicle
-print(f'Connecting to vehicle on: {args.connect}')
-vehicle = connect(args.connect, baud=921600, wait_ready=True)
-
-
-
-
-# Function to arm and then takeoff to a user specified altitude
-def arm_and_takeoff(aTargetAltitude):
-
-  print("Basic pre-arm checks")
-  # Don't let the user try to arm until autopilot is ready
-  while not vehicle.is_armable:
-    print(" Waiting for vehicle to initialise...")
-    time.sleep(1)
+        msg = sensor_msgs
         
-  print("Arming motors")
-  # Copter should arm in GUIDED mode
-  vehicle.mode    = VehicleMode("GUIDED")
-  vehicle.armed   = True
-
-  while not vehicle.armed:
-    print (" Waiting for arming...")
-    time.sleep(1)
-
-  print ("Taking off!")
-  vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
-
-  # Check that vehicle has reached takeoff altitude
-  while True:
-    print (" Altitude: ", vehicle.location.global_relative_frame.alt )
-    #Break and return from function just below target altitude.        
-    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95: 
-      print ("Reached target altitude")
-      break
-    time.sleep(1)
-
-#Takeoff height in meters
-arm_and_takeoff(8)
-
-print("Take off complete")
-
-# Hover for 10 seconds
-time.sleep(2)
-
-
-while(True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-
-    # Our operations on the frame come here
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-
-
-    grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_100)
-    parameters =  aruco.DetectorParameters_create()
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-    frame_markers = aruco.drawDetectedMarkers(frame.copy(), corners, ids)
-
-
-    for rejectedPolygons in rejectedImgPoints:
-         for points in rejectedPolygons:
-            cv2.line(frame_markers, tuple(points[0]), tuple(points[1]), [100, 0, 100])
-            cv2.line(frame_markers, tuple(points[2]), tuple(points[1]), [100, 0, 100])
-            cv2.line(frame_markers, tuple(points[2]), tuple(points[3]), [100, 0, 100])
-            cv2.line(frame_markers, tuple(points[0]), tuple(points[3]), [100, 0, 100])
-
-  #  cv2.imshow('frame_marker',frame_markers)
-  #  "53" is the index id of that particular Aruco Marker ( tetsed with 4X4 matrix marker)
-    if (ids==53):
-       print("Now let's land")
+        bridge = CvBridge()
+        image = bridge.imgmsg_to_cv2(msg, desired_encoding = 'passthrough')
         
-       vehicle.mode = VehicleMode("LAND")
 
-       break
+        ARUCO_DICT = {
+            "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+            "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+            "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+            "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+            "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+            "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+            "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+            "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
+            "DICT_6X6_50": cv2.aruco.DICT_6X6_50,
+            "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+            "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+            "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+            "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+            "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+            "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
+            "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+            "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
+            "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
+            "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
+            "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
+            "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
+        }
 
-cap.release()
-cv2.destroyAllWindows()
+        args = {'type': 'DICT_4X4_1000'}
+        arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000)
+
+        arucoParams = cv2.aruco.DetectorParameters()
+        (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
+            parameters=arucoParams)
+
+        # print(f"All: {(corners, ids, rejected)}")
+
+        # verify *at least* one ArUco marker was detected
+        if len(corners) > 0:
+            # flatten the ArUco IDs list
+            ids = ids.flatten()
+            # loop over the detected ArUCo corners
+            for (markerCorner, markerID) in zip(corners, ids):
+                corners = markerCorner.reshape((4, 2))
+                (topLeft, topRight, bottomRight, bottomLeft) = corners
+
+                # convert each of the (x, y)-coordinate pairs to integers
+                topRight = (int(topRight[0]), int(topRight[1]))
+                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+                topLeft = (int(topLeft[0]), int(topLeft[1]))
+                
+                cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+                cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+
+                x, y = 0, 0
+
+                if cX < 320:
+                    x = -(320-cX)
+                else:
+                    x = (cX - 320)
+
+                if cY < 240:
+                    y = -(240-cY) 
+
+                else:
+                    y = (cY - 240)
+                
+                if markerID == 688:
+                    msg = self.vehicle.message_factory.landing_target_encode(
+                        0,
+                        0,
+                        mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
+                        cX,
+                        cY,
+                        0,0,0
+                    )
+
+                    print(x, y)
+
+                    self.vehicle.send_mavlink(msg)
+                    self.vehicle.flush()
+            #result.angular.x = float(markerID)
+                # result.linear.x = float(x)
+                # result.linear.y = float(y)
+
+                # self.aruco_pub.publish(result)
 
 
 
+def main(args=None):
+    rclpy.init(args=args)
 
+    Aruco_Node = ArucoNode()
 
-# Close vehicle object
-vehicle.close()
+    rclpy.spin(Aruco_Node)
+
+    rclpy.shutdown()
+
+        
+
+    if __name__ == "__main__":
+        main()
+        
