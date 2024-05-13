@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            f'aruco_prec_land = {package_name}.node:main'
+            f'aruco_prec_land = {package_name}.node:main',
+            f'aruco_coordinates_pub = {package_name}.coordinates_publisher:main',
         ],
     },
 )

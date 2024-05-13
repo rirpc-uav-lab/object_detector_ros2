@@ -23,22 +23,25 @@ class ArucoNode(Node):
         # self.aruco_pub = self.create_publisher(Twist, '/aruco_result', 10)
         self.aruco_sub = self.create_subscription(Image, '/camera', self.Aruco_callback, 10)
         self.coordinates_pub = self.create_publisher(Vector3, '/camera/landing_position', 10)
+        self.detection_pub = self.create_publisher(Image, '/camera/detected_markers', 10)
 
-        self.vehicle = connect('/dev/ttyUSB0', wait_ready=True, baud=115200)
+        # self.vehicle = connect('udp:127.0.0.1:14550', wait_ready=True)
         # self.vehicle.parameters['PLND_ENABLED'] = 1
         # self.vehicle.parameters['PLND_TYPE'] = 1
         # self.vehicle.parameters['PLND_EST_TYPE'] = 0
         # self.vehicle.parameters['LAND_SPEED'] = 20
+        # self.vehicle = None
 
     def Aruco_callback(self, sensor_msgs: Image):
-        result = Twist()
-        result.linear.x = 0.0
-        result.angular.x = 0.0
-
         msg = sensor_msgs
+
         
         bridge = CvBridge()
         image = bridge.imgmsg_to_cv2(msg, desired_encoding = 'passthrough')
+        
+        frame_cx = int(image.shape[1] / 2)
+        frame_cy = int(image.shape[0] / 2)
+        angle_by_pixel = 1.047 / image.shape[1]
         
 
         ARUCO_DICT = {
@@ -72,6 +75,9 @@ class ArucoNode(Node):
         (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
             parameters=arucoParams)
 
+        image_detected = image.copy()
+        cv2.circle(image_detected, (frame_cx, frame_cy), 3, (255, 0, 0), 3)
+
         # print(f"All: {(corners, ids, rejected)}")
 
         # verify *at least* one ArUco marker was detected
@@ -80,6 +86,8 @@ class ArucoNode(Node):
             ids = ids.flatten()
             # loop over the detected ArUCo corners
             for (markerCorner, markerID) in zip(corners, ids):
+                if markerID != 688:
+                    continue
                 corners = markerCorner.reshape((4, 2))
                 (topLeft, topRight, bottomRight, bottomLeft) = corners
 
@@ -92,53 +100,27 @@ class ArucoNode(Node):
                 cX = int((topLeft[0] + bottomRight[0]) / 2.0)
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
 
-                x, y = 0, 0
-
-                if cX < 320:
-                    x = -(320-cX)
-                else:
-                    x = (cX - 320)
-
-                if cY < 240:
-                    y = -(240-cY) 
-
-                else:
-                    y = (cY - 240)
-                
-                if markerID == 688:
-                    msg = self.vehicle.message_factory.landing_target_encode(
-                        0,
-                        0,
-                        mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
-                        cX,
-                        cY,
-                        0,0,0
-                    )
-
-                    print(msg)
-                    print(type(msg))
-
-                    self.vehicle.send_mavlink(msg)
-                    self.vehicle.flush()
-            #result.angular.x = float(markerID)
-                # result.linear.x = float(x)
-                # result.linear.y = float(y)
-
-                # self.aruco_pub.publish(result)
+                cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
 
 
+                msg = Vector3()
+                msg.x = angle_by_pixel * float(cX - frame_cx)
+                msg.y = angle_by_pixel * float(cY - frame_cy)
+
+                # msg.x = float(cX - frame_cx)
+                # msg.y = float(cY - frame_cy)
+
+                self.coordinates_pub.publish(msg)
+
+        imgmsg = bridge.cv2_to_imgmsg(image_detected)
+        self.detection_pub.publish(imgmsg)
 
 def main(args=None):
     rclpy.init(args=args)
-
     Aruco_Node = ArucoNode()
-
     rclpy.spin(Aruco_Node)
-
     rclpy.shutdown()
 
-        
-
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
         
