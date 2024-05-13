@@ -6,8 +6,8 @@ from std_msgs.msg import String
 import numpy as np
 import cv2
 import math
-from pymavlink import mavutil
-from dronekit import connect #, VehicleMode, LocationGlobalRelative, LocationGlobal
+# from pymavlink import mavutil
+# from dronekit import connect #, VehicleMode, LocationGlobalRelative, LocationGlobal
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Vector3
