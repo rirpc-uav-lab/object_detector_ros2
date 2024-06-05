@@ -134,7 +134,7 @@ class LandingPublisher(Node):
                         sum += img[i][j][2]
             
             average = sum/(480*640/16)
-            if average > 90:
+            if average > 140:
                 self.light_is_bright = True
         
 
