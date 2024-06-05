@@ -135,8 +135,10 @@ class LandingPublisher(Node):
                         sum += img[i][j][2]
             
             average = sum/(480*640/16)
-            if average > 140:
-                self.light_is_bright = True
+            if average > 110:
+                self.light_is_bright = 1
+            else:
+                self.light_is_bright = 0
 
             self.str_average=str(average)
 
@@ -223,7 +225,7 @@ class LandingPublisher(Node):
 
                     self.coordinates_pub.publish(msg)
             else:    
-                if not self.light_is_bright:
+                if self.light_is_bright ==0:
                     kernel = np.ones((5, 5), np.uint8)
                     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
