@@ -79,7 +79,7 @@ class LandingPublisher(Node):
 
         corners, ids, rejected = None, None, None
 
-        if cv2.__version__ == '4.9.0':
+        if cv2.__version__ == '4.9.0' or cv2.__version__ == '4.5.4':
             arucoParams = cv2.aruco.DetectorParameters()
             detector = cv2.aruco.ArucoDetector(arucoDict, arucoParams)
             corners, ids, rejected = detector.detectMarkers(image)
