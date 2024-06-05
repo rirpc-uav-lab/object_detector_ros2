@@ -31,6 +31,7 @@ class LandingPublisher(Node):
 
         if user == "firefly":
             self.cam = cv2.VideoCapture("/dev/video40")
+            self.str_average = ""
             # self.res, self.inimg = self.cam.read()
             self.inimg = None
             self.light_is_bright = False
@@ -136,7 +137,8 @@ class LandingPublisher(Node):
             average = sum/(480*640/16)
             if average > 140:
                 self.light_is_bright = True
-        
+
+            self.str_average=str(average)
 
     def timer_callback(self):
         msg = Vector3()
@@ -263,6 +265,7 @@ class LandingPublisher(Node):
                                     cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
                                     self.coordinates_pub.publish(msg)
 
+            image_detected = cv2.putText(image_detected, self.str_average, (50,50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 3, cv2.LINE_AA) 
             imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
             self.detection_pub.publish(imgmsg)
 
