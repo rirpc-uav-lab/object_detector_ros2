@@ -230,20 +230,19 @@ class LandingPublisher(Node):
                                 (255, 0, 0), 1)
                 if len(contours) > 0:
                     i = max(contours, key = cv2.contourArea)
-                    cnt_area = cv2.contourArea(i)
-                    if cnt_area > 100 and cnt_area < 2700:
-                        cv2.drawContours(image_detected, [i], 0, (0,255,0), 3)
-                        M = cv2.moments(i)
-                        if M['m00'] != 0:
-                                    cX = int(M['m10']/M['m00'])
-                                    cY = int(M['m01']/M['m00'])
-                                    cv2.drawContours(image, [i], -1, (0, 255, 0), 2)
-                                    # cv2.circle(image, (cX, cY), 7, (0, 0, 255), -1)
-                                    msg = Vector3()
-                                    msg.x = angle_by_pixel * float(cX - frame_cx)
-                                    msg.y = angle_by_pixel * float(cY - frame_cy)    
-                                    cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
-                                    self.coordinates_pub.publish(msg)
+                    
+                    cv2.drawContours(image_detected, [i], 0, (0,255,0), 3)
+                    M = cv2.moments(i)
+                    if M['m00'] != 0:
+                                cX = int(M['m10']/M['m00'])
+                                cY = int(M['m01']/M['m00'])
+                                cv2.drawContours(image, [i], -1, (0, 255, 0), 2)
+                                # cv2.circle(image, (cX, cY), 7, (0, 0, 255), -1)
+                                msg = Vector3()
+                                msg.x = angle_by_pixel * float(cX - frame_cx)
+                                msg.y = angle_by_pixel * float(cY - frame_cy)    
+                                cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
+                                self.coordinates_pub.publish(msg)
 
             imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
             self.detection_pub.publish(imgmsg)
