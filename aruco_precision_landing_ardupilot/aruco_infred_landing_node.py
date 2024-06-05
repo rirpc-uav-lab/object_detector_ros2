@@ -14,7 +14,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Vector3
 from geometry_msgs.msg import Twist
 
-
+import platform
 
 class LandingPublisher(Node):
 
@@ -79,7 +79,7 @@ class LandingPublisher(Node):
 
         corners, ids, rejected = None, None, None
 
-        if cv2.__version__ == '4.9.0' or cv2.__version__ == '4.5.4':
+        if platform.freedesktop_os_release().get("VERSION_CODENAME") == 'jammy':
             arucoParams = cv2.aruco.DetectorParameters()
             detector = cv2.aruco.ArucoDetector(arucoDict, arucoParams)
             corners, ids, rejected = detector.detectMarkers(image)
@@ -163,7 +163,7 @@ class LandingPublisher(Node):
 
             corners, ids, rejected = None, None, None
 
-            if cv2.__version__ == '4.9.0':
+            if platform.freedesktop_os_release().get("VERSION_CODENAME") == 'jammy':
                 arucoParams = cv2.aruco.DetectorParameters()
                 detector = cv2.aruco.ArucoDetector(arucoDict, arucoParams)
                 corners, ids, rejected = detector.detectMarkers(image)
