@@ -31,8 +31,12 @@ class LandingPublisher(Node):
 
         if user == "firefly":
             self.cam = cv2.VideoCapture("/dev/video40")
+            # self.res, self.inimg = self.cam.read()
+            self.inimg = None
+            self.light_is_bright = False
             timer_period = 0.1  # seconds
             self.timer = self.create_timer(timer_period, self.timer_callback)
+            self.light_timer = self.create_timer(timer_period, self.light_timer)
         else:
             self.cam_sub = self.create_subscription(Image, '/camera', self.aruco_callback, 10)
 
@@ -120,6 +124,19 @@ class LandingPublisher(Node):
         imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
         self.detection_pub.publish(imgmsg)
 
+    def light_timer(self):
+        if self.inimg is not None:
+            img = cv2.cvtColor(self.inimg,cv2.COLOR_BGR2HSV)
+            sum = 0
+
+            for i in range(0,480,4):
+                for j in range(0,640,4):
+                        sum += img[i][j][2]
+            
+            average = sum/(480*640/16)
+            if average > 90:
+                self.light_is_bright = True
+        
 
     def timer_callback(self):
         msg = Vector3()
@@ -149,6 +166,7 @@ class LandingPublisher(Node):
                 }
 
         result, image = self.cam.read() 
+        self.inimg = image
         if result==1:       
             image_detected = copy(image)
             cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
@@ -203,46 +221,47 @@ class LandingPublisher(Node):
 
                     self.coordinates_pub.publish(msg)
             else:    
-                kernel = np.ones((5, 5), np.uint8)
-                hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+                if not self.light_is_bright:
+                    kernel = np.ones((5, 5), np.uint8)
+                    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-                lower = np.array([0, 0, 250])
-                upper = np.array([150, 255, 255])
+                    lower = np.array([0, 0, 250])
+                    upper = np.array([150, 255, 255])
 
-                ############################################################################################
-                mask = cv2.inRange(hsv, lower, upper)
-                # cv2.imshow('mask',mask)
-                # cv2.waitKey(0)
-                ####################################################################################################
-                #mask = cv2.erode(mask, kernel, iterations=5) 
-                mask = cv2.dilate(mask, kernel, iterations=4) 
-                # cv2.imshow('erode_mask',mask)
-                # key = cv2.waitKey(30)
-                # if key == ord('q') or key == 27:
-                #         break
-                #############################################################################################
+                    ############################################################################################
+                    mask = cv2.inRange(hsv, lower, upper)
+                    # cv2.imshow('mask',mask)
+                    # cv2.waitKey(0)
+                    ####################################################################################################
+                    #mask = cv2.erode(mask, kernel, iterations=5) 
+                    mask = cv2.dilate(mask, kernel, iterations=4) 
+                    # cv2.imshow('erode_mask',mask)
+                    # key = cv2.waitKey(30)
+                    # if key == ord('q') or key == 27:
+                    #         break
+                    #############################################################################################
 
-                contours, hierarchies = cv2.findContours(
-                mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-                blank = np.zeros(mask.shape[:2], 
-                                dtype='uint8')
-                cv2.drawContours(blank, contours, -1, 
-                                (255, 0, 0), 1)
-                if len(contours) > 0:
-                    i = max(contours, key = cv2.contourArea)
-                    
-                    cv2.drawContours(image_detected, [i], 0, (0,255,0), 3)
-                    M = cv2.moments(i)
-                    if M['m00'] != 0:
-                                cX = int(M['m10']/M['m00'])
-                                cY = int(M['m01']/M['m00'])
-                                cv2.drawContours(image, [i], -1, (0, 255, 0), 2)
-                                # cv2.circle(image, (cX, cY), 7, (0, 0, 255), -1)
-                                msg = Vector3()
-                                msg.x = angle_by_pixel * float(cX - frame_cx)
-                                msg.y = angle_by_pixel * float(cY - frame_cy)    
-                                cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
-                                self.coordinates_pub.publish(msg)
+                    contours, hierarchies = cv2.findContours(
+                    mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+                    blank = np.zeros(mask.shape[:2], 
+                                    dtype='uint8')
+                    cv2.drawContours(blank, contours, -1, 
+                                    (255, 0, 0), 1)
+                    if len(contours) > 0:
+                        i = max(contours, key = cv2.contourArea)
+                        
+                        cv2.drawContours(image_detected, [i], 0, (0,255,0), 3)
+                        M = cv2.moments(i)
+                        if M['m00'] != 0:
+                                    cX = int(M['m10']/M['m00'])
+                                    cY = int(M['m01']/M['m00'])
+                                    cv2.drawContours(image, [i], -1, (0, 255, 0), 2)
+                                    # cv2.circle(image, (cX, cY), 7, (0, 0, 255), -1)
+                                    msg = Vector3()
+                                    msg.x = angle_by_pixel * float(cX - frame_cx)
+                                    msg.y = angle_by_pixel * float(cY - frame_cy)    
+                                    cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
+                                    self.coordinates_pub.publish(msg)
 
             imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
             self.detection_pub.publish(imgmsg)
