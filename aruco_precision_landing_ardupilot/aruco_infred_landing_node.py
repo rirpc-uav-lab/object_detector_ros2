@@ -256,8 +256,12 @@ def main(args=None):
 
     print(sys.argv)
 
-    if sys.argv[1] != None:
-        landing_publisher = LandingPublisher(username=sys.argv[1])
+
+    if len(sys.argv) > 1:
+        if sys.argv[1] != None:
+            landing_publisher = LandingPublisher(username=sys.argv[1])
+        else:
+            landing_publisher = LandingPublisher()
     else:
         landing_publisher = LandingPublisher()
 
