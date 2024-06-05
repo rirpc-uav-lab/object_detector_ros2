@@ -148,107 +148,110 @@ class LandingPublisher(Node):
             "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
                 }
 
-        result, image = self.cam.read()        
-        image_detected = copy(image)
-        cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
-        frame_cx = int(image.shape[1] / 2)
-        frame_cy = int(image.shape[0] / 2)
-        angle_by_pixel = 1.047 / image.shape[1]
+        result, image = self.cam.read() 
+        if result==1:       
+            image_detected = copy(image)
+            cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
+            frame_cx = int(image.shape[1] / 2)
+            frame_cy = int(image.shape[0] / 2)
+            angle_by_pixel = 1.047 / image.shape[1]
 
-        #args = {'type': 'DICT_4X4_1000'}
-        #arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
-        args = {'type': 'DICT_4X4_1000'}
-        arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000)
+            #args = {'type': 'DICT_4X4_1000'}
+            #arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
+            args = {'type': 'DICT_4X4_1000'}
+            arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000)
 
-        corners, ids, rejected = None, None, None
+            corners, ids, rejected = None, None, None
 
-        if cv2.__version__ == '4.9.0':
-            arucoParams = cv2.aruco.DetectorParameters()
-            detector = cv2.aruco.ArucoDetector(arucoDict, arucoParams)
-            corners, ids, rejected = detector.detectMarkers(image)
+            if cv2.__version__ == '4.9.0':
+                arucoParams = cv2.aruco.DetectorParameters()
+                detector = cv2.aruco.ArucoDetector(arucoDict, arucoParams)
+                corners, ids, rejected = detector.detectMarkers(image)
+            else:
+                arucoParams = cv2.aruco.DetectorParameters_create()
+                (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
+                    parameters=arucoParams)
+
+
+
+            # verify *at least* one ArUco marker was detected
+            if len(corners) > 0:
+                # flatten the ArUco IDs list
+                ids = ids.flatten()
+                # loop over the detected ArUCo corners
+                for (markerCorner, markerID) in zip(corners, ids):
+                    if markerID != 3:
+                        continue
+                    corners = markerCorner.reshape((4, 2))
+                    (topLeft, topRight, bottomRight, bottomLeft) = corners
+
+                    # convert each of the (x, y)-coordinate pairs to integers
+                    topRight = (int(topRight[0]), int(topRight[1]))
+                    bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+                    bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+                    topLeft = (int(topLeft[0]), int(topLeft[1]))
+                    
+                    cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+                    cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+
+                    cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
+
+
+                    msg = Vector3()
+                    msg.x = angle_by_pixel * float(cX - frame_cx)
+                    msg.y = angle_by_pixel * float(cY - frame_cy)
+
+                    self.coordinates_pub.publish(msg)
+            else:    
+                kernel = np.ones((5, 5), np.uint8)
+                hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+                lower = np.array([0, 0, 250])
+                upper = np.array([150, 255, 255])
+
+                ############################################################################################
+                mask = cv2.inRange(hsv, lower, upper)
+                # cv2.imshow('mask',mask)
+                # cv2.waitKey(0)
+                ####################################################################################################
+                #mask = cv2.erode(mask, kernel, iterations=5) 
+                mask = cv2.dilate(mask, kernel, iterations=4) 
+                # cv2.imshow('erode_mask',mask)
+                # key = cv2.waitKey(30)
+                # if key == ord('q') or key == 27:
+                #         break
+                #############################################################################################
+
+                contours, hierarchies = cv2.findContours(
+                mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+                blank = np.zeros(mask.shape[:2], 
+                                dtype='uint8')
+                cv2.drawContours(blank, contours, -1, 
+                                (255, 0, 0), 1)
+                if len(contours) > 0:
+                    i = max(contours, key = cv2.contourArea)
+                    cnt_area = cv2.contourArea(i)
+                    if cnt_area > 100 and cnt_area < 2700:
+                        cv2.drawContours(image_detected, [i], 0, (0,255,0), 3)
+                        M = cv2.moments(i)
+                        if M['m00'] != 0:
+                                    cX = int(M['m10']/M['m00'])
+                                    cY = int(M['m01']/M['m00'])
+                                    cv2.drawContours(image, [i], -1, (0, 255, 0), 2)
+                                    # cv2.circle(image, (cX, cY), 7, (0, 0, 255), -1)
+                                    msg = Vector3()
+                                    msg.x = angle_by_pixel * float(cX - frame_cx)
+                                    msg.y = angle_by_pixel * float(cY - frame_cy)    
+                                    cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
+                                    self.coordinates_pub.publish(msg)
+
+            imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
+            self.detection_pub.publish(imgmsg)
+
+            cv2.imwrite("/home/firefly/Pictures/land.jpg",image_detected)
         else:
-            arucoParams = cv2.aruco.DetectorParameters_create()
-            (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
-                parameters=arucoParams)
-
-
-
-        # verify *at least* one ArUco marker was detected
-        if len(corners) > 0:
-            # flatten the ArUco IDs list
-            ids = ids.flatten()
-            # loop over the detected ArUCo corners
-            for (markerCorner, markerID) in zip(corners, ids):
-                if markerID != 3:
-                    continue
-                corners = markerCorner.reshape((4, 2))
-                (topLeft, topRight, bottomRight, bottomLeft) = corners
-
-                # convert each of the (x, y)-coordinate pairs to integers
-                topRight = (int(topRight[0]), int(topRight[1]))
-                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-                topLeft = (int(topLeft[0]), int(topLeft[1]))
-                
-                cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-                cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-
-                cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
-
-
-                msg = Vector3()
-                msg.x = angle_by_pixel * float(cX - frame_cx)
-                msg.y = angle_by_pixel * float(cY - frame_cy)
-
-                self.coordinates_pub.publish(msg)
-        else:    
-            kernel = np.ones((5, 5), np.uint8)
-            hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-            lower = np.array([0, 0, 250])
-            upper = np.array([150, 255, 255])
-
-            ############################################################################################
-            mask = cv2.inRange(hsv, lower, upper)
-            # cv2.imshow('mask',mask)
-            # cv2.waitKey(0)
-            ####################################################################################################
-            #mask = cv2.erode(mask, kernel, iterations=5) 
-            mask = cv2.dilate(mask, kernel, iterations=4) 
-            # cv2.imshow('erode_mask',mask)
-            # key = cv2.waitKey(30)
-            # if key == ord('q') or key == 27:
-            #         break
-            #############################################################################################
-
-            contours, hierarchies = cv2.findContours(
-            mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-            blank = np.zeros(mask.shape[:2], 
-                            dtype='uint8')
-            cv2.drawContours(blank, contours, -1, 
-                            (255, 0, 0), 1)
-            if len(contours) > 0:
-                i = max(contours, key = cv2.contourArea)
-                cnt_area = cv2.contourArea(i)
-                if cnt_area > 100 and cnt_area < 2700:
-                    cv2.drawContours(image_detected, [i], 0, (0,255,0), 3)
-                    M = cv2.moments(i)
-                    if M['m00'] != 0:
-                                cX = int(M['m10']/M['m00'])
-                                cY = int(M['m01']/M['m00'])
-                                cv2.drawContours(image, [i], -1, (0, 255, 0), 2)
-                                # cv2.circle(image, (cX, cY), 7, (0, 0, 255), -1)
-                                msg = Vector3()
-                                msg.x = angle_by_pixel * float(cX - frame_cx)
-                                msg.y = angle_by_pixel * float(cY - frame_cy)    
-                                cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
-                                self.coordinates_pub.publish(msg)
-
-        imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
-        self.detection_pub.publish(imgmsg)
-
-        cv2.imwrite("/home/firefly/Pictures/land.jpg",image_detected)
-
+            print('Bei hvostatyx')
+            
 def main(args=None):
     rclpy.init(args=args)
 
