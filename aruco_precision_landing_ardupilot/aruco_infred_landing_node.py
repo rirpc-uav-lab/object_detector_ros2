@@ -247,6 +247,8 @@ class LandingPublisher(Node):
         imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
         self.detection_pub.publish(imgmsg)
 
+        cv2.imwrite("/home/firefly/Pictures/land.jpg",image_detected)
+
 def main(args=None):
     rclpy.init(args=args)
 
