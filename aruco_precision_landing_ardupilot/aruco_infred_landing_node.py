@@ -30,7 +30,7 @@ class LandingPublisher(Node):
             user = getuser()
 
         if user == "firefly":
-            self.cam = cv2.VideoCapture("/dev/video0")
+            self.cam = cv2.VideoCapture("/dev/video40")
             timer_period = 0.1  # seconds
             self.timer = self.create_timer(timer_period, self.timer_callback)
         else:
