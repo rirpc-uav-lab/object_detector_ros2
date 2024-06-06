@@ -37,7 +37,7 @@ class LandingPublisher(Node):
             self.light_is_bright = False
             timer_period = 0.1  # seconds
             self.timer = self.create_timer(timer_period, self.timer_callback)
-            self.light_timer = self.create_timer(timer_period, self.light_timer)
+            self.light_timer = self.create_timer(10, self.light_timer)
         else:
             self.cam_sub = self.create_subscription(Image, '/camera', self.aruco_callback, 10)
 
@@ -128,14 +128,22 @@ class LandingPublisher(Node):
     def light_timer(self):
         if self.inimg is not None:
             img = cv2.cvtColor(self.inimg,cv2.COLOR_BGR2HSV)
+            array = []
             sum = 0
+            for i in range(480):
+                for j in range(640):
+                        array.append(img[i][j][2])
 
-            for i in range(0,480,4):
-                for j in range(0,640,4):
-                        sum += img[i][j][2]
+            array2 = sorted(array)
+            #array3 = array2[:76800] + array2[230400:]
+            array3 = array2[76800:230400]
+
+            for i in range(len(array3)):
+                sum += array3[i]
+
+            average = sum/(480*640/2)   
             
-            average = sum/(480*640/16)
-            if average > 110:
+            if average > 55:
                 self.light_is_bright = 1
             else:
                 self.light_is_bright = 0
