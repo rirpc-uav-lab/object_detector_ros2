@@ -31,6 +31,10 @@ class LandingPublisher(Node):
 
         if user == "firefly":
             self.cam = cv2.VideoCapture("/dev/video40")
+        
+            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 2560)
+            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        
             self.str_average = ""
             # self.res, self.inimg = self.cam.read()
             self.inimg = None
@@ -184,7 +188,7 @@ class LandingPublisher(Node):
             cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
             frame_cx = int(image.shape[1] / 2)
             frame_cy = int(image.shape[0] / 2)
-            angle_by_pixel = 1.047 / image.shape[1]
+            angle_by_pixel = 1.51844 / image.shape[1]
 
             #args = {'type': 'DICT_4X4_1000'}
             #arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
@@ -281,7 +285,7 @@ class LandingPublisher(Node):
 
             cv2.imwrite("/home/firefly/Pictures/land.jpg",image_detected)
         else:
-            print('Bei hvostatyx')
+            print('Nowhere to land')
             
 def main(args=None):
     rclpy.init(args=args)
