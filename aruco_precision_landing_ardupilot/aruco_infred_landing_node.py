@@ -37,8 +37,8 @@ class LandingPublisher(Node):
         
             self.str_average = ""
             self.inimg = None
-            self.res, self.inimg = self.cam.read()
-            
+            #self.res, self.inimg = self.cam.read()
+
             self.light_is_bright = False
             timer_period = 0.1  # seconds
             self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -78,7 +78,7 @@ class LandingPublisher(Node):
         image = self.bridge.imgmsg_to_cv2(img_in)
         image_detected = copy(image)
         cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
-        frame_cx = int(image.shape[1] / 2)
+        frame_cx = int(image_detected.shape[1] / 2)
         frame_cy = int(image.shape[0] / 2)
         angle_by_pixel = 1.047 / image.shape[1]
 
