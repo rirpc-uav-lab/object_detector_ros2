@@ -30,7 +30,7 @@ class LandingPublisher(Node):
             user = getuser()
 
         if user == "firefly":
-            self.cam = cv2.VideoCapture("/dev/video40")
+            self.cam = cv2.VideoCapture("/dev/video40",cv2.CAP_DSHOW)
         
             self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 2560)
             self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
