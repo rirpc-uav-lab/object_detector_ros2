@@ -183,7 +183,7 @@ class LandingPublisher(Node):
 
         result, image = self.cam.read() 
         self.inimg = image
-        if result==1:       
+        if result==1 and image is not None:        
             image_detected = copy(image)
             cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
             frame_cx = int(image.shape[1] / 2)
