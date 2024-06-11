@@ -32,8 +32,8 @@ class LandingPublisher(Node):
         if user == "firefly":
             self.cam = cv2.VideoCapture("/dev/video40")
         
-            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 2560)
-            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            # self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 2560)
+            # self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         
             self.str_average = ""
             # self.res, self.inimg = self.cam.read()
