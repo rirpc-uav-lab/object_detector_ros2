@@ -32,12 +32,13 @@ class LandingPublisher(Node):
         if user == "firefly":
             self.cam = cv2.VideoCapture("/dev/video40")
         
-            # self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 2560)
-            # self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 2560)
+            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         
             self.str_average = ""
-            # self.res, self.inimg = self.cam.read()
             self.inimg = None
+            self.res, self.inimg = self.cam.read()
+            
             self.light_is_bright = False
             timer_period = 0.1  # seconds
             self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -185,7 +186,7 @@ class LandingPublisher(Node):
         self.inimg = copy(image)
         if result==1 and image is not None:        
             image_detected = copy(image)
-            # cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
+            cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
             frame_cx = int(image.shape[1] / 2)
             frame_cy = int(image.shape[0] / 2)
             angle_by_pixel = 1.51844 / image.shape[1]
