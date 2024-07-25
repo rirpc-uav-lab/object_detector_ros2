@@ -28,8 +28,7 @@ class LandingPublisher(Node):
         user = username
         if username is None:
             user = getuser()
-        
-        print(user)
+
         if user == "firefly":
             self.cam = cv2.VideoCapture("/dev/video40")
         
@@ -81,8 +80,9 @@ class LandingPublisher(Node):
         cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
         frame_cx = int(image.shape[1] / 2)
         frame_cy = int(image.shape[0] / 2)
-        angle_by_pixel = 1.047 / image.shape[1]
-
+        #angle_by_pixel = 1.047 / image.shape[1]
+        angle_by_pixel_x = 1.39626 / image.shape[1]
+        angle_by_pixel_y = 0.872665 / image.shape[0]
         #args = {'type': 'DICT_4X4_1000'}
         #arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
         args = {'type': 'DICT_4X4_1000'}
@@ -123,8 +123,29 @@ class LandingPublisher(Node):
 
 
                 msg = Vector3()
-                msg.x = angle_by_pixel * float(cX - frame_cx)
-                msg.y = angle_by_pixel * float(cY - frame_cy)
+                
+                x = ( angle_by_pixel_x * float(cX - frame_cx) )
+                    
+                if x > 0.022: 
+                    msg.x = 0.022
+                
+                elif x < -0.022:
+                    msg.x = -0.022
+
+                else:
+                    msg.x = x
+
+
+                y = ( angle_by_pixel_y * float(cY - frame_cy) ) 
+
+                if y > 0.022: 
+                    msg.y = 0.022
+                
+                elif y < -0.022:
+                    msg.y = -0.022
+
+                else:
+                    msg.y = y
 
                 self.coordinates_pub.publish(msg)
 
@@ -193,7 +214,7 @@ class LandingPublisher(Node):
             cv2.normalize(image, image, 0, 255, cv2.NORM_MINMAX)
             frame_cx = int(image.shape[1] / 2)
             frame_cy = int(image.shape[0] / 2)
-            angle_by_pixel_x = 1.51844 / image.shape[1]
+            angle_by_pixel_x = 1.39626 / image.shape[1]
             angle_by_pixel_y = 0.872665 / image.shape[0]
             #args = {'type': 'DICT_4X4_1000'}
             #arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
@@ -300,15 +321,14 @@ def main(args=None):
     print(sys.argv)
 
 
-  #  if len(sys.argv) > 1:
-  #      if sys.argv[1] != None:
-  #          landing_publisher = LandingPublisher(username=sys.argv[1])
-  #      else:
-  #          landing_publisher = LandingPublisher()
-  #  else:
-  #      landing_publisher = LandingPublisher()
+    if len(sys.argv) > 1:
+        if sys.argv[1] != None:
+            landing_publisher = LandingPublisher(username=sys.argv[1])
+        else:
+            landing_publisher = LandingPublisher()
+    else:
+        landing_publisher = LandingPublisher()
 
-    landing_publisher = LandingPublisher()
 
     rclpy.spin(landing_publisher)
 
