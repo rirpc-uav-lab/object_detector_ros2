@@ -28,7 +28,8 @@ class LandingPublisher(Node):
         user = username
         if username is None:
             user = getuser()
-
+        
+        print(user)
         if user == "firefly":
             self.cam = cv2.VideoCapture("/dev/video40")
         
@@ -362,14 +363,15 @@ def main(args=None):
     print(sys.argv)
 
 
-    if len(sys.argv) > 1:
-        if sys.argv[1] != None:
-            landing_publisher = LandingPublisher(username=sys.argv[1])
-        else:
-            landing_publisher = LandingPublisher()
-    else:
-        landing_publisher = LandingPublisher()
+  #  if len(sys.argv) > 1:
+  #      if sys.argv[1] != None:
+  #          landing_publisher = LandingPublisher(username=sys.argv[1])
+  #      else:
+  #          landing_publisher = LandingPublisher()
+  #  else:
+  #      landing_publisher = LandingPublisher()
 
+    landing_publisher = LandingPublisher()
 
     rclpy.spin(landing_publisher)
 
