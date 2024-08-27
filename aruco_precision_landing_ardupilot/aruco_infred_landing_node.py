@@ -258,8 +258,29 @@ class LandingPublisher(Node):
 
 
                     msg = Vector3()
-                    msg.x = angle_by_pixel_x * float(cX - frame_cx)
-                    msg.y = angle_by_pixel_y * float(cY - frame_cy)
+
+                    x = ( angle_by_pixel_x * float(cX - frame_cx) )
+                    
+                    if x > 0.022: 
+                        msg.x = 0.022
+                    
+                    elif x < -0.022:
+                        msg.x = -0.022
+
+                    else:
+                        msg.x = x
+
+
+                    y = ( angle_by_pixel_y * float(cY - frame_cy) ) 
+
+                    if y > 0.022: 
+                        msg.y = 0.022
+                    
+                    elif y < -0.022:
+                        msg.y = -0.022
+
+                    else:
+                        msg.y = y
 
                     self.coordinates_pub.publish(msg)
             else:    
@@ -300,8 +321,28 @@ class LandingPublisher(Node):
                                     cv2.drawContours(image, [i], -1, (0, 255, 0), 2)
                                     # cv2.circle(image, (cX, cY), 7, (0, 0, 255), -1)
                                     msg = Vector3()
-                                    msg.x = angle_by_pixel_x * float(cX - frame_cx)
-                                    msg.y = angle_by_pixel_y * float(cY - frame_cy)    
+                                    x = ( angle_by_pixel_x * float(cX - frame_cx) )
+                    
+                                    if x > 0.022: 
+                                        msg.x = 0.022
+                                    
+                                    elif x < -0.022:
+                                        msg.x = -0.022
+
+                                    else:
+                                        msg.x = x
+
+
+                                    y = ( angle_by_pixel_y * float(cY - frame_cy) ) 
+
+                                    if y > 0.022: 
+                                        msg.y = 0.022
+                                    
+                                    elif y < -0.022:
+                                        msg.y = -0.022
+
+                                    else:
+                                        msg.y = y
                                     cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
                                     self.coordinates_pub.publish(msg)
 
