@@ -21,8 +21,8 @@ class ArucoNode(Node):
 
         super().__init__('Aruco_Node')
         # self.aruco_pub = self.create_publisher(Twist, '/aruco_result', 10)
-        self.aruco_sub = self.create_subscription(Image, '/camera', self.Aruco_callback, 10)
-        self.coordinates_pub = self.create_publisher(Vector3, '/camera/landing_position', 10)
+        self.aruco_sub = self.create_subscription(Image, 'camera', self.Aruco_callback, 10)
+        self.coordinates_pub = self.create_publisher(Vector3, 'camera/landing_position', 10)
 
         self.vehicle = connect('/dev/ttyUSB0', wait_ready=True, baud=115200)
         # self.vehicle.parameters['PLND_ENABLED'] = 1

@@ -21,7 +21,7 @@ class LandingPublisher(Node):
     def __init__(self, username=None):
         
         super().__init__('landing_publisher')
-        self.coordinates_pub = self.create_publisher(Vector3, '/camera/landing_position', 10)
+        self.coordinates_pub = self.create_publisher(Vector3, 'camera/landing_position', 10)
         self.detection_pub = self.create_publisher(Image, "camera/detected_markers", 10)
         self.bridge = CvBridge()
         
@@ -45,7 +45,7 @@ class LandingPublisher(Node):
             self.timer = self.create_timer(timer_period, self.timer_callback)
             self.light_timer = self.create_timer(10, self.light_timer)
         else:
-            self.cam_sub = self.create_subscription(Image, '/camera', self.aruco_callback, 10)
+            self.cam_sub = self.create_subscription(Image, 'camera', self.aruco_callback, 10)
 
 
 
@@ -99,6 +99,8 @@ class LandingPublisher(Node):
             arucoParams = cv2.aruco.DetectorParameters_create()
             (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
                 parameters=arucoParams)
+
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaa")
 
         # verify *at least* one ArUco marker was detected
         if len(corners) > 0:

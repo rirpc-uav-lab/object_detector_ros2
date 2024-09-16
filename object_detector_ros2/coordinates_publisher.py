@@ -21,9 +21,9 @@ class ArucoNode(Node):
 
         super().__init__('Aruco_Node')
         # self.aruco_pub = self.create_publisher(Twist, '/aruco_result', 10)
-        self.aruco_sub = self.create_subscription(Image, '/camera', self.Aruco_callback, 10)
-        self.coordinates_pub = self.create_publisher(Vector3, '/camera/landing_position', 10)
-        self.detection_pub = self.create_publisher(Image, '/camera/detected_markers', 10)
+        self.aruco_sub = self.create_subscription(Image, 'camera', self.Aruco_callback, 10)
+        self.coordinates_pub = self.create_publisher(Vector3, 'camera/landing_position', 10)
+        self.detection_pub = self.create_publisher(Image, 'camera/detected_markers', 10)
 
         # self.vehicle = connect('udp:127.0.0.1:14550', wait_ready=True)
         # self.vehicle.parameters['PLND_ENABLED'] = 1
