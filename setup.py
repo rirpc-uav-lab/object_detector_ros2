@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'aruco_precision_landing_ardupilot'
+package_name = 'object_detector_ros2'
 
 setup(
     name=package_name,
