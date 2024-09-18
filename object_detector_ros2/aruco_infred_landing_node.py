@@ -100,7 +100,6 @@ class LandingPublisher(Node):
             (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
                 parameters=arucoParams)
 
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaa")
 
         # verify *at least* one ArUco marker was detected
         if len(corners) > 0:
@@ -127,28 +126,43 @@ class LandingPublisher(Node):
 
                 msg = Vector3()
                 
-                x = ( angle_by_pixel_x * float(cX - frame_cx) )
+                cv2.circle(image_detected, (frame_cx, frame_cy), 2, (0, 255, 0), 2)
+                cv2.line(image_detected, (cX, frame_cy), (frame_cx, frame_cy), (255, 0, 0), 2)
+                cv2.line(image_detected, (frame_cx, cY), (frame_cx, frame_cy), (255, 0, 0), 2)
+
+                # x_from_c = float(cX - frame_cx)
+                # y_from_c = - float(cY - frame_cy)
+
+                x_from_c = - float(cY - frame_cy)
+                y_from_c = - float(cX - frame_cx)
+
+                cv2.putText(image_detected, f"x: {x_from_c}\ny: {y_from_c}", (100, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 1)
+                
+                msg.x = (angle_by_pixel_x * x_from_c)
+                msg.y = (angle_by_pixel_y * y_from_c) 
+                
+                # x = ( angle_by_pixel_x * float(cX - frame_cx) )
                     
-                if x > 0.022: 
-                    msg.x = 0.022
+                # if x > 0.022: 
+                #     msg.x = 0.022
                 
-                elif x < -0.022:
-                    msg.x = -0.022
+                # elif x < -0.022:
+                #     msg.x = -0.022
 
-                else:
-                    msg.x = x
+                # else:
+                #     msg.x = x
 
 
-                y = ( angle_by_pixel_y * float(cY - frame_cy) ) 
+                # y = ( angle_by_pixel_y * float(cY - frame_cy) ) 
 
-                if y > 0.022: 
-                    msg.y = 0.022
+                # if y > 0.022: 
+                #     msg.y = 0.022
                 
-                elif y < -0.022:
-                    msg.y = -0.022
+                # elif y < -0.022:
+                #     msg.y = -0.022
 
-                else:
-                    msg.y = y
+                # else:
+                #     msg.y = y
 
                 self.coordinates_pub.publish(msg)
 
