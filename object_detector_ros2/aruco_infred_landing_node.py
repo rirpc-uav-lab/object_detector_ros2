@@ -28,6 +28,7 @@ class LandingPublisher(Node):
         user = username
         if username is None:
             user = getuser()
+        self.camera_pub = None
         
         print(user)
         if user == "firefly":
@@ -44,8 +45,10 @@ class LandingPublisher(Node):
             timer_period = 0.1  # seconds
             self.timer = self.create_timer(timer_period, self.timer_callback)
             self.light_timer = self.create_timer(10, self.light_timer)
+            self.camera_pub = self.create_publisher(Image, "camera/image", 10)
         else:
             self.cam_sub = self.create_subscription(Image, 'camera', self.aruco_callback, 10)
+            self.camera_pub = self.create_publisher(Image, "camera/image", 10)
 
 
 
@@ -168,6 +171,8 @@ class LandingPublisher(Node):
 
         imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
         self.detection_pub.publish(imgmsg)
+        raw_imgmsg = self.bridge.cv2_to_imgmsg(image)
+        self.camera_pub.publish(raw_imgmsg)
 
     def light_timer(self):
         if self.inimg is not None:
@@ -365,6 +370,8 @@ class LandingPublisher(Node):
 
             image_detected = cv2.putText(image_detected, self.str_average, (50,50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 3, cv2.LINE_AA) 
             imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
+            raw_imgmsg = self.bridge.cv2_to_imgmsg(image)
+            self.camera_pub.publish(raw_imgmsg)
             self.detection_pub.publish(imgmsg)
 
             cv2.imwrite("/home/firefly/Pictures/land.jpg",image_detected)
