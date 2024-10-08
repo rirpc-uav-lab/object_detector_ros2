@@ -280,31 +280,16 @@ class LandingPublisher(Node):
 
 
                     msg = Vector3()
+                    x_from_c = - float(cY - frame_cy)
+                    y_from_c = - float(cX - frame_cx)
 
-                    x = ( angle_by_pixel_x * float(cX - frame_cx) )
+                    cv2.putText(image_detected, f"x: {x_from_c}\ny: {y_from_c}", (100, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 1)
                     
-                    if x > 0.022: 
-                        msg.x = 0.022
+                    msg.x = (angle_by_pixel_x * x_from_c)
+                    msg.y = (angle_by_pixel_y * y_from_c) 
                     
-                    elif x < -0.022:
-                        msg.x = -0.022
-
-                    else:
-                        msg.x = x
-
-
-                    y = ( angle_by_pixel_y * float(cY - frame_cy) ) 
-
-                    if y > 0.022: 
-                        msg.y = 0.022
-                    
-                    elif y < -0.022:
-                        msg.y = -0.022
-
-                    else:
-                        msg.y = y
-
                     self.coordinates_pub.publish(msg)
+
             else:    
                 if self.light_is_bright ==0:
                     kernel = np.ones((5, 5), np.uint8)
@@ -343,28 +328,37 @@ class LandingPublisher(Node):
                                     cv2.drawContours(image, [i], -1, (0, 255, 0), 2)
                                     # cv2.circle(image, (cX, cY), 7, (0, 0, 255), -1)
                                     msg = Vector3()
-                                    x = ( angle_by_pixel_x * float(cX - frame_cx) )
-                    
-                                    if x > 0.022: 
-                                        msg.x = 0.022
+                                    x_from_c = - float(cY - frame_cy)
+                                    y_from_c = - float(cX - frame_cx)
+
+                                    cv2.putText(image_detected, f"x: {x_from_c}\ny: {y_from_c}", (100, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 1)
                                     
-                                    elif x < -0.022:
-                                        msg.x = -0.022
-
-                                    else:
-                                        msg.x = x
-
-
-                                    y = ( angle_by_pixel_y * float(cY - frame_cy) ) 
-
-                                    if y > 0.022: 
-                                        msg.y = 0.022
+                                    msg.x = (angle_by_pixel_x * x_from_c)
+                                    msg.y = (angle_by_pixel_y * y_from_c) 
                                     
-                                    elif y < -0.022:
-                                        msg.y = -0.022
+                                    # x = ( angle_by_pixel_x * float(cX - frame_cx) )
+                                        
+                                    # if x > 0.022: 
+                                    #     msg.x = 0.022
+                                    
+                                    # elif x < -0.022:
+                                    #     msg.x = -0.022
 
-                                    else:
-                                        msg.y = y
+                                    # else:
+                                    #     msg.x = x
+
+
+                                    # y = ( angle_by_pixel_y * float(cY - frame_cy) ) 
+
+                                    # if y > 0.022: 
+                                    #     msg.y = 0.022
+                                    
+                                    # elif y < -0.022:
+                                    #     msg.y = -0.022
+
+                                    # else:
+                                    #     msg.y = y
+
                                     cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
                                     self.coordinates_pub.publish(msg)
 
