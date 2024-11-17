@@ -287,6 +287,19 @@ class LandingPublisher(Node):
             self.str_average = str_aver + " " + width + " " + heidth
 
     def timer_callback(self):
+        diagnostic_status = DiagnosticStatus()
+        diagnostic_status.name = "camera_info_status"
+        diagnostic_status.hardware_id = "landing_cam"
+
+        if self.cam_info is None:
+            diagnostic_status.level = DiagnosticStatus.ERROR
+            diagnostic_status.message = "Camera info is not set"
+        else:
+            diagnostic_status.level = DiagnosticStatus.OK
+            diagnostic_status.message = "Camera info is available"
+
+        self.diagnostics_pub.publish(diagnostic_status)
+        
         if self.cam_info is not None:
             msg = Vector3()
 
