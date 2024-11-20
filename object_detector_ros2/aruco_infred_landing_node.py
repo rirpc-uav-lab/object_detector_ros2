@@ -152,6 +152,7 @@ class LandingPublisher(Node):
                 raise Exception("No camera_params_custom_autosetup_period_ms provided")
             # self.light_timer = self.create_timer(10, self.light_timer)
             self.camera_pub = self.create_publisher(Image, "camera/image", 10)
+            self.camera_info_pub = self.create_publisher(CameraInfo, "camera/camera_info", 10)
         else:
             #####################################################
             #                     Sim setup                     #
@@ -361,6 +362,7 @@ class LandingPublisher(Node):
             self.detection_pub.publish(imgmsg)
             raw_imgmsg = self.bridge.cv2_to_imgmsg(image)
             self.camera_pub.publish(raw_imgmsg)
+            self.camera_info_pub.publish(self.cam_info)
 
     def light_timer(self):
         if self.inimg is not None:
