@@ -2,6 +2,90 @@ import cv2
 import numpy as np
 import glob
 import os
+import time
+
+
+def measure_fps(cap, duration=5):
+    """
+    Measures the FPS of the video capture stream.
+
+    Parameters:
+    cap (cv2.VideoCapture): The video capture object.
+    duration (int): The duration in seconds to measure the FPS.
+
+    Returns:
+    float: The measured FPS.
+    """
+    start_time = time.time()
+    frame_count = 0
+
+    while (time.time() - start_time) < duration:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame_count += 1
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    fps = frame_count / elapsed_time
+
+    return fps
+
+def measure_fps_for_resolutions(cap, supported_resolutions, duration=5):
+    """
+    Measures the FPS for each supported resolution and returns the resolution with the greatest R2FPS value.
+
+    Parameters:
+    cap (cv2.VideoCapture): The video capture object.
+    supported_resolutions (list of tuples): List of supported resolutions (width, height).
+    duration (int): The duration in seconds to measure the FPS.
+
+    Returns:
+    tuple: The resolution with the greatest R2FPS value (width, height).
+    """
+    best_resolution = None
+    best_r2fps = 0
+
+    for width, height in supported_resolutions:
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
+        actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+        if actual_width == width and actual_height == height:
+            fps = measure_fps(cap, duration)
+            r2fps = fps*width*height / 100000
+            print(f"Resolution: {width}x{height}, FPS: {fps:.2f}, R2FPS: {r2fps:.2f}")
+            if r2fps > best_r2fps:
+                best_r2fps = r2fps
+                best_resolution = (width, height)
+
+    return best_resolution
+
+
+def get_supported_resolutions(cap):
+    # Define possible values for height and width
+    possible_resolutions = [
+        (640, 480), (800, 600), (1024, 768), (1280, 720), (1280, 960),
+        (1600, 1200), (1920, 1080), (2048, 1536), (2592, 1944), (3840, 2160)
+    ]
+
+    supported_resolutions = []
+
+    for width, height in possible_resolutions:
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
+        actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+        if actual_width == width and actual_height == height:
+            supported_resolutions.append((width, height))
+
+    return supported_resolutions
+
+
 
 def save_coefficients(mtx, dist, path):
     cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_WRITE)
@@ -15,6 +99,8 @@ def load_coefficients(path):
     dist_matrix = cv_file.getNode("D").mat()
     cv_file.release()
     return camera_matrix, dist_matrix
+
+
 
 def main():
     # Ask for chessboard parameters
@@ -40,6 +126,20 @@ def main():
 
     # Start video capture
     cap = cv2.VideoCapture('/dev/video2')  # Change the argument to the desired video port
+
+    supported_resolutions = get_supported_resolutions(cap)
+
+    max_width = max(supported_resolutions, key=lambda x: x[0])[0]
+    max_height = max(supported_resolutions, key=lambda x: x[1])[1]
+
+    # print(f"Supported resolutions: {supported_resolutions}")
+    print(f"Max resolution: {max_width}x{max_height}")
+    # print(f"FPS: {measure_fps(cap)}")
+    best_width, best_height = measure_fps_for_resolutions(cap, supported_resolutions, duration=10)
+    print(f"Best resolution: {best_width}x{best_height}")
+
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, best_width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, best_height)
 
     img_counter = 0
     while True:

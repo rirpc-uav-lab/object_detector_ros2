@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 import glob
 import os
+import yaml
 
-def save_coefficients(mtx, dist, path):
-    cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_WRITE)
-    cv_file.write("K", mtx)
-    cv_file.write("D", dist)
-    cv_file.release()
+def save_coefficients(mtx, dist, width, height, path):
+    data = {"K": mtx.tolist(), "D": dist.tolist(), "width": width, "height": height}
+    with open(path, "w") as f:
+        yaml.dump(data, f)
 
 def load_coefficients(path):
     cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_READ)
@@ -64,7 +64,7 @@ def main():
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
     # Save the camera matrix and the distortion coefficients to a file
-    save_coefficients(mtx, dist, "calibration_data.yaml")
+    save_coefficients(mtx, dist, img.shape[1], img.shape[0], "calibration_data.yaml")
 
     print("Camera matrix : \n", mtx)
     print("dist : \n", dist)
