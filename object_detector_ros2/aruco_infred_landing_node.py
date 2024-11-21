@@ -44,28 +44,28 @@ class LandingPublisher(Node):
     def __init__(self):
         
         super().__init__('landing_publisher', allow_undeclared_parameters=True, automatically_declare_parameters_from_overrides=True)
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         self.coordinates_pub = self.create_publisher(Vector3, 'camera/landing_position', 10)
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         self.detection_pub = self.create_publisher(Image, "camera/detected_markers", 10)
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         self.bridge = CvBridge()
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         self.cam_info = None
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         self.fov_x_rad = None
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         self.fov_y_rad = None
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         self.create_subscription(UInt8, 'landing_object_detector/landing_marker_id', self.landing_marker_id_callback, 10)
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         self.diagnostics_pub = self.create_publisher(DiagnosticStatus, 'diagnostics', 10)
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
         #####################################################
         #                       Params                      #
         #####################################################
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
         self.landing_marker_id = try_get(lambda: self.get_parameter("landing_marker_id"), 688)
         self.robot_is_simulated = try_get(lambda: self.get_parameter("robot_is_simulated"), False)
@@ -74,7 +74,7 @@ class LandingPublisher(Node):
         self.res_width = try_get(lambda: self.get_parameter("res_width"), None)
         self.res_height = try_get(lambda: self.get_parameter("res_height"), None)
         self.camera_params_custom_autosetup_period_ms = try_get(lambda: self.get_parameter("camera_params_custom_autosetup_period_ms"), None)
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
                     # self.cam.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
                     # exposure_value =  100 # Adjust this value based on your camera's range
@@ -84,14 +84,14 @@ class LandingPublisher(Node):
         #                 Sim or Real setup                 #
         #####################################################
         self.camera_pub = None
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
         if not self.robot_is_simulated:
             #####################################################
             #                     Real setup                    #
             #####################################################
             self.cam = cv2.VideoCapture(self.camera_port)
         
-            self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+            # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
             if self.calibration_config_path is not None:
                 with open(self.calibration_config_path, 'r') as file:
                     calib_config = yaml.safe_load(file)
@@ -139,7 +139,7 @@ class LandingPublisher(Node):
                     self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.cam_info.width)
                     self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.cam_info.height)
 
-                    self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+                    # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
                     # self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
                     # # Set a specific focus value
                     # desired_focus_value = 0  # Example value; adjust based on your camera
@@ -161,7 +161,7 @@ class LandingPublisher(Node):
             if self.camera_params_custom_autosetup_period_ms is not None:
                 self.autoparams_timer = self.create_timer(float(self.camera_params_custom_autosetup_period_ms / 1000.0), self.params_autosetup_cb)
                 self.err_i = 0
-                self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+                # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
                 self.cam.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
             # self.light_timer = self.create_timer(10, self.light_timer)
             self.camera_pub = self.create_publisher(Image, "camera/image", 10)
@@ -170,7 +170,7 @@ class LandingPublisher(Node):
             #####################################################
             #                     Sim setup                     #
             #####################################################
-            self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+            # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
             self.cam_sub = self.create_subscription(Image, 'camera', self.aruco_callback, 10)
             self.cam_info_sub = self.create_subscription(CameraInfo, 'camera/camera_info', self.cam_info_cb, 10)
             # self.camera_pub = self.create_publisher(Image, "camera/image", 10)
@@ -268,11 +268,11 @@ class LandingPublisher(Node):
             diagnostic_status.message = "Camera info is available"
 
         self.diagnostics_pub.publish(diagnostic_status)
-        self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+        # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
         if self.cam_info is not None:
             msg = Vector3()
-            self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+            # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
             ARUCO_DICT = {
                 "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
@@ -297,7 +297,7 @@ class LandingPublisher(Node):
                 "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
                 "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
             }
-            self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+            # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
             image = self.bridge.imgmsg_to_cv2(img_in)
             image_detected = copy(image)
@@ -313,7 +313,7 @@ class LandingPublisher(Node):
             arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000)
 
             corners, ids, rejected = None, None, None
-            self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+            # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
             if platform.freedesktop_os_release().get("VERSION_CODENAME") == 'jammy':
                 arucoParams = cv2.aruco.DetectorParameters()
@@ -323,22 +323,22 @@ class LandingPublisher(Node):
                 arucoParams = cv2.aruco.DetectorParameters_create()
                 (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
                     parameters=arucoParams)
-            self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+            # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
 
             # verify *at least* one ArUco marker was detected
             if len(corners) > 0:
-                self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+                # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
                 # flatten the ArUco IDs list
                 ids = ids.flatten()
                 # loop over the detected ArUCo corners
                 for (markerCorner, markerID) in zip(corners, ids):
-                    self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+                    # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
                     if markerID != self.landing_marker_id:
                         continue
                     corners = markerCorner.reshape((4, 2))
                     (topLeft, topRight, bottomRight, bottomLeft) = corners
-                    self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+                    # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
                     # convert each of the (x, y)-coordinate pairs to integers
                     topRight = (int(topRight[0]), int(topRight[1]))
@@ -351,7 +351,7 @@ class LandingPublisher(Node):
 
                     cv2.circle(image_detected, (cX, cY), 3, (0, 0, 255), 3)
 
-                    self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+                    # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
                     msg = Vector3()
                     
                     cv2.circle(image_detected, (frame_cx, frame_cy), 2, (0, 255, 0), 2)
@@ -372,7 +372,7 @@ class LandingPublisher(Node):
                     br_x_from_c = - float(bottomRight[1] - frame_cy)
                     br_y_from_c = - float(bottomRight[0] - frame_cx)
 
-                    self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+                    # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
                     alpha = math.atan2(tr_y_from_c - br_y_from_c, tr_x_from_c - br_x_from_c)
 
                     msg.x = (angle_by_pixel_x * x_from_c)
@@ -380,13 +380,13 @@ class LandingPublisher(Node):
                     msg.z = alpha
                     
                     self.coordinates_pub.publish(msg)
-                    self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+                    # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
 
             # cv2.imwrite(f"/home/{user}/Pictures/land.jpg",image_detected)
-            self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+            # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
             imgmsg = self.bridge.cv2_to_imgmsg(image_detected)
             self.detection_pub.publish(imgmsg)
-            self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
+            # self.get_logger().info(f"Line number: {inspect.getframeinfo(inspect.currentframe()).lineno}")
             # raw_imgmsg = self.bridge.cv2_to_imgmsg(image)
             # self.camera_pub.publish(raw_imgmsg)
 
