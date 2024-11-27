@@ -55,8 +55,8 @@ def main():
 
             # Draw and display the corners
             cv2.drawChessboardCorners(img, (intersections_x, intersections_y), corners2, ret)
-            cv2.imshow('img', img)
-            cv2.waitKey(500)
+            # cv2.imshow('img', img)
+            # cv2.waitKey(0)
 
     cv2.destroyAllWindows()
 

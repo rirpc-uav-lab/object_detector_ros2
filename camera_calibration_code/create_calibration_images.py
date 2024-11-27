@@ -135,12 +135,16 @@ def main():
     # print(f"Supported resolutions: {supported_resolutions}")
     print(f"Max resolution: {max_width}x{max_height}")
     # print(f"FPS: {measure_fps(cap)}")
-    best_width, best_height = measure_fps_for_resolutions(cap, supported_resolutions, duration=10)
+    best_width, best_height = measure_fps_for_resolutions(cap, supported_resolutions, duration=1)
+
+    best_width, best_height = 1280, 720
     print(f"Best resolution: {best_width}x{best_height}")
+
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, best_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, best_height)
-
+    cap.set(cv2.CAP_PROP_AUTOFOCUS,0)
+    cap.set(cv2.CAP_PROP_FOCUS, 0)
     img_counter = 0
     while True:
         ret, frame = cap.read()
