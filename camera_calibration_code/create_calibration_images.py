@@ -137,7 +137,7 @@ def main():
     # print(f"FPS: {measure_fps(cap)}")
     best_width, best_height = measure_fps_for_resolutions(cap, supported_resolutions, duration=1)
 
-    best_width, best_height = 1280, 720
+    best_width, best_height = 640, 480
     print(f"Best resolution: {best_width}x{best_height}")
 
 
