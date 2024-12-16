@@ -53,6 +53,8 @@ class LandingPublisher(Node):
         self.create_subscription(UInt8, 'landing_object_detector/landing_marker_id', self.landing_marker_id_callback, 10)
         self.diagnostics_pub = self.create_publisher(DiagnosticStatus, 'diagnostics', 10)
 
+        self.counter = 0
+
         #####################################################
         #                       Params                      #
         #####################################################
@@ -402,12 +404,15 @@ class LandingPublisher(Node):
         diagnostic_status.name = "camera_info_status"
         diagnostic_status.hardware_id = "landing_cam"
 
-        if self.cam_info is None:
-            diagnostic_status.level = DiagnosticStatus.ERROR
-            diagnostic_status.message = "Camera info is not set"
-        else:
-            diagnostic_status.level = DiagnosticStatus.OK
-            diagnostic_status.message = "Camera info is available"
+        if self.counter % 30 == 0:
+            if self.cam_info is None:
+                diagnostic_status.level = DiagnosticStatus.ERROR
+                diagnostic_status.message = "Camera info is not set"
+            else:
+                diagnostic_status.level = DiagnosticStatus.OK
+                diagnostic_status.message = "Camera info is available"
+
+        self.counter += 1
 
         self.diagnostics_pub.publish(diagnostic_status)
         
